@@ -210,3 +210,24 @@ fn validate_signature(
 
     Ok(())
 }
+
+#[napi]
+fn group_key_to_ed25519(
+    group_key: Buffer
+) -> Result<Buffer> {
+    let gk = group_key_from_buff(group_key)
+        .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
+
+    return Ok(gk.to_ed25519().to_vec().into())
+}
+
+#[napi]
+fn sig_to_ed25519(
+    sigb: Buffer
+) -> Result<Buffer> {
+    let mut sig = [0u8; 64];
+    sig.copy_from_slice(&sigb);
+    let threshold_sig = ThresholdSignature::from_bytes(sig).map_err(|_| Error::from_reason("invalid threshold sig".into()))?;
+
+    return Ok(threshold_sig.to_ed25519().to_vec().into())
+}

@@ -62,7 +62,8 @@ Secret Key: ${keyRes.sk.key.toString("hex")}\n`
 		groupKey = keyRes.gk;
 	});
 
-	console.log("Group Public Key:", groupKey!.toString("hex"), "\n");
+	console.log("Group Public Key:", groupKey!.toString("hex"));
+	console.log("Group ED25519 Key:", FROST.groupKeyToEd25519(groupKey!).toString("hex"), "\n");
 
 	// Test signature signing
 	console.log("Testing signature signing...")
