@@ -1,6 +1,6 @@
-# frost-secp256k1-js
+# frost-dalek-js
 
-Low Level JS Bindings for [frost-secp256k1](https://github.com/XP-NETWORK/frost-secp256k1)
+Low Level JS Bindings for [frost-dalek](https://github.com/XP-NETWORK/frost-dalek)
 
 ## Usage
 

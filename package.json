@@ -1,10 +1,10 @@
 {
-  "name": "frost-secp256k1",
+  "name": "frost-dalek",
   "version": "0.0.2",
-  "description": "low level JS Bindings for frost-secp256k1",
+  "description": "low level JS Bindings for frost-dalek",
   "main": "dist/index.js",
   "napi": {
-    "name": "frost-secp256k1"
+    "name": "frost-dalek"
   },
   "scripts": {
     "create-dist": "mkdir -p dist",

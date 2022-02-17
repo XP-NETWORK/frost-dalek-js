@@ -68,7 +68,7 @@ Secret Key: ${keyRes.sk.key.toString("hex")}\n`
 	console.log("Testing signature signing...")
 	const context = Buffer.from("CONTEXT STRING", "ascii");
 	const message = Buffer.from("this a test", "ascii");
-	const pubComms = new Array<FROST.DualSecp256K1Wrap>();
+	const pubComms = new Array<FROST.DualRistrettoWrap>();
 	const secretCommHandles = new Array<number>();
 	const pubKSliced = new Array<FROST.PublicKeyWrapper>(t);
 

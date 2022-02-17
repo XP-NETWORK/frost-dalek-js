@@ -5,17 +5,17 @@ specifiers:
   '@types/node': ^17.0.10
 
 devDependencies:
-  '@napi-rs/cli': 2.4.2
-  '@types/node': 17.0.10
+  '@napi-rs/cli': 2.4.4
+  '@types/node': 17.0.18
 
 packages:
 
-  /@napi-rs/cli/2.4.2:
-    resolution: {integrity: sha512-+yCOuPqernvD8BMphbadF87ElaJ0rjanOZrbnauaEdR07YyoalGw3FTk15HHyflIwQKlYd69gkG5EM4WFkICKw==}
+  /@napi-rs/cli/2.4.4:
+    resolution: {integrity: sha512-f+tvwCv1ka24dBqI2DgBhR7Oxl3DKHOp4onxLXwyBFt6iCADnr3YZIr1/2Iq5r3uqxFgaf01bfPsRQZPkEp0kQ==}
     engines: {node: '>= 10'}
     hasBin: true
     dev: true
 
-  /@types/node/17.0.10:
-    resolution: {integrity: sha512-S/3xB4KzyFxYGCppyDt68yzBU9ysL88lSdIah4D6cptdcltc4NCPCAMc0+PCpg/lLIyC7IPvj2Z52OJWeIUkog==}
+  /@types/node/17.0.18:
+    resolution: {integrity: sha512-eKj4f/BsN/qcculZiRSujogjvp5O/k4lOW5m35NopjZM/QwLOR075a8pJW5hD+Rtdm2DaCVPENS6KtSQnUD6BA==}
     dev: true

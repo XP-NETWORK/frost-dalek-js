@@ -2,8 +2,8 @@ mod wrappers;
 
 use std::alloc::{dealloc, Layout};
 
-use frost_secp256k1::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, GroupKey, IndividualPublicKey, compute_message_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, ThresholdSignature, PartialThresholdSignature}};
-use k256::{CompressedPoint, AffinePoint};
+use frost_dalek::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, IndividualPublicKey, compute_message_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, ThresholdSignature, PartialThresholdSignature}};
+use curve25519_dalek::ristretto::RistrettoPoint;
 use napi::{Result, Error, bindgen_prelude::Buffer};
 use napi_derive::napi;
 use rand_core::OsRng;
@@ -114,10 +114,10 @@ fn get_aggregator_signers(
     group_key: Buffer,
     context: Buffer,
     message: Buffer,
-    commitments: Vec<DualSecp256k1Wrap>,
+    commitments: Vec<DualRistrettoWrap>,
     public_keys: Vec<PublicKeyWrapper>
 ) -> Result<GenAggregatorRes> {
-    let gk = GroupKey::from_bytes(CompressedPoint::clone_from_slice(&group_key))
+    let gk = group_key_from_buff(group_key)
         .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
 
     let mut aggregator = SignatureAggregator::new(
@@ -128,7 +128,7 @@ fn get_aggregator_signers(
     );
 
     for (commitment, pubk) in commitments.into_iter().zip(public_keys.into_iter()) {
-        let commitment: Option<(AffinePoint, AffinePoint)> = commitment.into();
+        let commitment: Option<(RistrettoPoint, RistrettoPoint)> = commitment.into();
         let commitment = commitment.ok_or_else(|| Error::from_reason("invalid commitment provided".into()))?;
         let pubk: Option<IndividualPublicKey> = pubk.into();
         let pubk = pubk.ok_or_else(|| Error::from_reason("invalid public key provided".into()))?;
@@ -156,7 +156,7 @@ fn sign_partial(
     let sk: Option<IndividualSecretKey> = secret_key.into();
     let sk = sk.ok_or_else(|| Error::from_reason("invalid secret key".into()))?;
 
-    let gk = GroupKey::from_bytes(CompressedPoint::clone_from_slice(&group_key))
+    let gk = group_key_from_buff(group_key)
         .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
 
     let message_hash = compute_message_hash(&context, &message);
@@ -198,13 +198,13 @@ fn validate_signature(
     context: Buffer,
     message: Buffer
 ) -> Result<()> {
-    let gk = GroupKey::from_bytes(CompressedPoint::clone_from_slice(&group_key))
+    let gk = group_key_from_buff(group_key)
         .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
 
     let message_hash = compute_message_hash(&context, &message);
-    let mut sig = [0u8; 65];
+    let mut sig = [0u8; 64];
     sig.copy_from_slice(&signature);
-    let threshold_sig = ThresholdSignature::from_bytes(sig).ok_or_else(|| Error::from_reason("invalid threshold sig".into()))?;
+    let threshold_sig = ThresholdSignature::from_bytes(sig).map_err(|_| Error::from_reason("invalid threshold sig".into()))?;
 
     threshold_sig.verify(&gk, &message_hash).map_err(|_| Error::from_reason("threshold signature verification failed!".into()))?;
 

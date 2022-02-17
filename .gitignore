@@ -2,6 +2,6 @@ dist
 /target
 Cargo.lock
 index.*
-frost-secp256k1.*.node
+frost-dalek.*.node
 node_modules
 out

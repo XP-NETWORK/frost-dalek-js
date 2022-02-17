@@ -1,28 +1,35 @@
-use frost_secp256k1::{Participant, nizk::NizkOfSecretKey, keygen::SecretShare, IndividualSecretKey as SecretKey, precomputation::PublicCommitmentShareList, signature::{Signer, PartialThresholdSignature}, IndividualPublicKey};
-use k256::{Scalar, elliptic_curve::{PrimeField, group::GroupEncoding}, FieldBytes, AffinePoint, CompressedPoint, ProjectivePoint};
+use frost_dalek::{Participant, nizk::NizkOfSecretKey, keygen::SecretShare, IndividualSecretKey as SecretKey, precomputation::PublicCommitmentShareList, signature::{Signer, PartialThresholdSignature}, IndividualPublicKey, GroupKey};
+use curve25519_dalek::{ristretto::{RistrettoPoint, CompressedRistretto}, scalar::Scalar};
 use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
+use std::convert::TryInto;
 
-pub(crate) fn scalar_bytes_from_buff(buf: Buffer) -> FieldBytes {
-    FieldBytes::clone_from_slice(&buf)
+pub(crate) fn scalar_bytes_from_buff(buf: Buffer) -> Option<[u8; 32]> {
+    (&buf as &[u8]).try_into().ok()
+}
+
+pub(crate) fn group_key_from_buff(buf: Buffer) -> Option<GroupKey> {
+    (&buf as &[u8]).try_into().ok()
+        .map(|v| GroupKey::from_bytes(v).ok())
+        .flatten()
 }
 
 fn scalar_from_buff(buf: Buffer) -> Option<Scalar> {
-    Scalar::from_repr(
-        scalar_bytes_from_buff(buf)
-    ).into()
+    Some(Scalar::from_bits(
+        scalar_bytes_from_buff(buf)?
+    ))
 }
 
 fn scalar_to_buff(scalar: Scalar) -> Buffer {
     scalar.to_bytes().to_vec().into()
 }
 
-fn secp256k1_point_to_buff(point: AffinePoint) -> Buffer {
-    point.to_bytes().to_vec().into()
+fn risteretto_point_to_buff(point: RistrettoPoint) -> Buffer {
+    point.compress().to_bytes().to_vec().into()
 }
 
-fn secp256k1_point_from_buff(buf: Buffer) -> Option<AffinePoint> {
-    AffinePoint::from_bytes(CompressedPoint::from_slice(&buf)).into()
+fn risteretto_point_from_buff(buf: Buffer) -> Option<RistrettoPoint> {
+    CompressedRistretto::from_slice(&buf).decompress()
 }
 
 #[napi(object)]
@@ -43,7 +50,7 @@ impl From<IndividualPublicKey> for PublicKeyWrapper {
     fn from(pubk: IndividualPublicKey) -> Self {
         Self {
             index: pubk.index,
-            share: secp256k1_point_to_buff(pubk.share)
+            share: risteretto_point_to_buff(pubk.share)
         }
     }
 }
@@ -52,7 +59,7 @@ impl Into<Option<IndividualPublicKey>> for PublicKeyWrapper {
     fn into(self) -> Option<IndividualPublicKey> {
         Some(IndividualPublicKey {
             index: self.index,
-            share: secp256k1_point_from_buff(self.share)?
+            share: risteretto_point_from_buff(self.share)?
         })
     }
 }
@@ -63,7 +70,7 @@ impl From<Participant> for ParticipantWrapper {
             index: participant.index,
             commitments: participant.commitments
                 .into_iter()
-                .map(|p| secp256k1_point_to_buff(p.into()))
+                .map(|p| risteretto_point_to_buff(p.into()))
                 .collect(),
             pos_r: scalar_to_buff(participant.proof_of_secret_key.r),
             pos_s: scalar_to_buff(participant.proof_of_secret_key.s)
@@ -77,8 +84,8 @@ impl Into<Option<Participant>> for ParticipantWrapper {
             index: self.index,
             commitments: self.commitments
                 .into_iter()
-                .map(|p| secp256k1_point_from_buff(p).map(|v| v.into()))
-                .collect::<Option<Vec<ProjectivePoint>>>()?,
+                .map(|p| risteretto_point_from_buff(p).map(|v| v.into()))
+                .collect::<Option<Vec<_>>>()?,
             proof_of_secret_key: NizkOfSecretKey {
                 s: scalar_from_buff(self.pos_s)?,
                 r: scalar_from_buff(self.pos_r)?
@@ -155,24 +162,24 @@ pub(crate) struct DeriveRes {
 }
 
 #[napi(object)]
-pub struct DualSecp256k1Wrap {
+pub struct DualRistrettoWrap {
     pub first: Buffer,
     pub second: Buffer
 }
 
-impl From<(AffinePoint, AffinePoint)> for DualSecp256k1Wrap {
-    fn from((p1, p2): (AffinePoint, AffinePoint)) -> Self {
+impl From<(RistrettoPoint, RistrettoPoint)> for DualRistrettoWrap {
+    fn from((p1, p2): (RistrettoPoint, RistrettoPoint)) -> Self {
         Self {
-            first: secp256k1_point_to_buff(p1),
-            second: secp256k1_point_to_buff(p2)
+            first: risteretto_point_to_buff(p1),
+            second: risteretto_point_to_buff(p2)
         }
     }
 }
 
-impl Into<Option<(AffinePoint, AffinePoint)>> for DualSecp256k1Wrap {
-    fn into(self) -> Option<(AffinePoint, AffinePoint)> {
-        let first = secp256k1_point_from_buff(self.first)?;
-        let second = secp256k1_point_from_buff(self.second)?;
+impl Into<Option<(RistrettoPoint, RistrettoPoint)>> for DualRistrettoWrap {
+    fn into(self) -> Option<(RistrettoPoint, RistrettoPoint)> {
+        let first = risteretto_point_from_buff(self.first)?;
+        let second = risteretto_point_from_buff(self.second)?;
         Some((first, second))
     }
 }
@@ -180,7 +187,7 @@ impl Into<Option<(AffinePoint, AffinePoint)>> for DualSecp256k1Wrap {
 #[napi(object)]
 pub(crate) struct PubCommitmentShareListWrapper {
     pub participant_index: u32,
-    pub commitment: DualSecp256k1Wrap 
+    pub commitment: DualRistrettoWrap 
 }
 
 impl From<PublicCommitmentShareList> for PubCommitmentShareListWrapper {
@@ -194,7 +201,7 @@ impl From<PublicCommitmentShareList> for PubCommitmentShareListWrapper {
 
 impl Into<Option<PublicCommitmentShareList>> for PubCommitmentShareListWrapper {
     fn into(self) -> Option<PublicCommitmentShareList> {
-        let commitment: Option<(AffinePoint, AffinePoint)> = self.commitment.into();
+        let commitment: Option<(RistrettoPoint, RistrettoPoint)> = self.commitment.into();
         Some(PublicCommitmentShareList {
             participant_index: self.participant_index,
             commitments: vec![commitment?]
@@ -211,7 +218,7 @@ pub(crate) struct GenCommitmentShareRes {
 #[napi(object)]
 pub struct SignerWrapper {
     pub participant_index: u32,
-    pub published_commitment_share: DualSecp256k1Wrap 
+    pub published_commitment_share: DualRistrettoWrap 
 }
 
 impl From<Signer> for SignerWrapper {
@@ -225,7 +232,7 @@ impl From<Signer> for SignerWrapper {
 
 impl Into<Option<Signer>> for SignerWrapper {
     fn into(self) -> Option<Signer> {
-        let published_commitment_share: Option<(AffinePoint, AffinePoint)> = self.published_commitment_share.into();
+        let published_commitment_share: Option<(RistrettoPoint, RistrettoPoint)> = self.published_commitment_share.into();
         Some(Signer {
             participant_index: self.participant_index,
             published_commitment_share: published_commitment_share?

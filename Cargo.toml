@@ -1,5 +1,5 @@
 [package]
-name = "frost-secp256k1-bind"
+name = "frost-dalek-bind"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,9 +9,10 @@ edition = "2021"
 crate-type=["cdylib"]
 
 [dependencies]
-rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
-frost-secp256k1 = { git = "https://github.com/XP-NETWORK/frost-secp256k1", rev = "ecd5d4bb676598acdde7061b960c3a26bd949e6c" } 
-k256 = "0.10"
+rand_core = { version = "0.5", default-features = false, features = ["getrandom"] }
+frost-dalek = { git = "https://github.com/XP-NETWORK/frost-dalek", rev = "62d3b90223313ac26693a7bf8d580e46939a4a9e" } 
+ed25519-dalek = "1"
+curve25519-dalek = "3"
 napi = "2"
 napi-derive = "2"
 
