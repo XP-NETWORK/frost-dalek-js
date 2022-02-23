@@ -2,7 +2,8 @@ mod wrappers;
 
 use std::alloc::{dealloc, Layout};
 
-use frost_dalek::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, IndividualPublicKey, compute_message_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, ThresholdSignature, PartialThresholdSignature}};
+use frost_dalek::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, IndividualPublicKey, compute_message_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, PartialThresholdSignature}};
+use ed25519_dalek::Verifier;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use napi::{Result, Error, bindgen_prelude::Buffer};
 use napi_derive::napi;
@@ -188,7 +189,7 @@ fn aggregate_signatures(
     let aggregator = aggregator.finalize().map_err(|_| Error::from_reason("failed to finalize aggregation".into()))?;
     let sig = aggregator.aggregate().map_err(|_| Error::from_reason("failed to aggregate signatures".into()))?;
 
-    return Ok(sig.to_bytes().to_vec().into())
+    return Ok(sig.to_ed25519().to_vec().into())
 }
 
 #[napi]
@@ -201,12 +202,14 @@ fn validate_signature(
     let gk = group_key_from_buff(group_key)
         .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
 
+    let gk_ed = ed25519_dalek::PublicKey::from_bytes(&gk.to_ed25519()).unwrap();
+
     let message_hash = compute_message_hash(&context, &message);
     let mut sig = [0u8; 64];
     sig.copy_from_slice(&signature);
-    let threshold_sig = ThresholdSignature::from_bytes(sig).map_err(|_| Error::from_reason("invalid threshold sig".into()))?;
+    let sig_ed = ed25519_dalek::Signature::from(sig);
 
-    threshold_sig.verify(&gk, &message_hash).map_err(|_| Error::from_reason("threshold signature verification failed!".into()))?;
+    gk_ed.verify(&message_hash, &sig_ed).map_err(|_| Error::from_reason("threshold signature verification failed!".into()))?;
 
     Ok(())
 }
@@ -219,15 +222,4 @@ fn group_key_to_ed25519(
         .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
 
     return Ok(gk.to_ed25519().to_vec().into())
-}
-
-#[napi]
-fn sig_to_ed25519(
-    sigb: Buffer
-) -> Result<Buffer> {
-    let mut sig = [0u8; 64];
-    sig.copy_from_slice(&sigb);
-    let threshold_sig = ThresholdSignature::from_bytes(sig).map_err(|_| Error::from_reason("invalid threshold sig".into()))?;
-
-    return Ok(threshold_sig.to_ed25519().to_vec().into())
 }
