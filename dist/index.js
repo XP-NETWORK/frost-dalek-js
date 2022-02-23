@@ -236,7 +236,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { participate, generateTheirSharesAndVerifyParticipants, derivePubkAndGroupKey, genCommitmentShareLists, discardSecretShareHandle, getAggregatorSigners, signPartial, aggregateSignatures, validateSignature, groupKeyToEd25519, sigToEd25519 } = nativeBinding
+const { participate, generateTheirSharesAndVerifyParticipants, derivePubkAndGroupKey, genCommitmentShareLists, discardSecretShareHandle, getAggregatorSigners, signPartial, aggregateSignatures, validateSignature, groupKeyToEd25519 } = nativeBinding
 
 module.exports.participate = participate
 module.exports.generateTheirSharesAndVerifyParticipants = generateTheirSharesAndVerifyParticipants
@@ -248,4 +248,3 @@ module.exports.signPartial = signPartial
 module.exports.aggregateSignatures = aggregateSignatures
 module.exports.validateSignature = validateSignature
 module.exports.groupKeyToEd25519 = groupKeyToEd25519
-module.exports.sigToEd25519 = sigToEd25519

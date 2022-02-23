@@ -68,4 +68,3 @@ export function signPartial(secretKey: SecretKeyWrapper, groupKey: Buffer, conte
 export function aggregateSignatures(aggreatorHandle: number, signatures: Array<PartialThresholdSigWrapper>): Buffer
 export function validateSignature(groupKey: Buffer, signature: Buffer, context: Buffer, message: Buffer): void
 export function groupKeyToEd25519(groupKey: Buffer): Buffer
-export function sigToEd25519(sigb: Buffer): Buffer
