@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "^2.4.2",
+    "@noble/ed25519": "^1.6.0",
     "@types/node": "^17.0.10"
   },
   "author": "",

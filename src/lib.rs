@@ -2,7 +2,7 @@ mod wrappers;
 
 use std::alloc::{dealloc, Layout};
 
-use frost_dalek::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, IndividualPublicKey, compute_message_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, PartialThresholdSignature}};
+use frost_dalek::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, IndividualPublicKey, compute_sha256_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, PartialThresholdSignature}};
 use ed25519_dalek::Verifier;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use napi::{Result, Error, bindgen_prelude::Buffer};
@@ -160,7 +160,7 @@ fn sign_partial(
     let gk = group_key_from_buff(group_key)
         .ok_or_else(|| Error::from_reason("invalid group key".into()))?;
 
-    let message_hash = compute_message_hash(&context, &message);
+    let message_hash = compute_sha256_hash(&context, &message);
     let mut secret_comm_share: Box<SecretCommitmentShareList> = unsafe { from_handle(secret_comm_share_handle) };
 
     sk.sign(
@@ -204,7 +204,7 @@ fn validate_signature(
 
     let gk_ed = ed25519_dalek::PublicKey::from_bytes(&gk.to_ed25519()).unwrap();
 
-    let message_hash = compute_message_hash(&context, &message);
+    let message_hash = compute_sha256_hash(&context, &message);
     let mut sig = [0u8; 64];
     sig.copy_from_slice(&signature);
     let sig_ed = ed25519_dalek::Signature::from(sig);

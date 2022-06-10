@@ -1,4 +1,6 @@
-import * as FROST from ".."
+import * as FROST from "..";
+import * as ed from "@noble/ed25519";
+import { createHash } from "crypto";
 import readline from "readline";
 
 
@@ -110,6 +112,20 @@ Secret Key: ${keyRes.sk.key.toString("hex")}\n`
 		console.log("validated signature!");
 	} catch (e) {
 		console.log("failed to validate signature, err:", e);
+	}
+
+	const ed25519gk = FROST.groupKeyToEd25519(groupKey!);
+	console.log("\nverifying signature with noble/ed25519");
+	const msgHash = createHash("SHA256")
+		.update(context)
+		.update(message)
+		.digest();
+
+	console.log("message hash", msgHash.toString("hex"));
+	if (await ed.verify(signature, msgHash, ed25519gk)) {
+		console.log("validated siganture!");
+	} else {
+		console.log("failed to verify ed25519 signature");
 	}
 
 })().then(() => process.exit(0))
