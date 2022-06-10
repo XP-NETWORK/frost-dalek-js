@@ -1,11 +1,13 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   '@napi-rs/cli': ^2.4.2
+  '@noble/ed25519': ^1.6.0
   '@types/node': ^17.0.10
 
 devDependencies:
   '@napi-rs/cli': 2.4.4
+  '@noble/ed25519': 1.6.0
   '@types/node': 17.0.18
 
 packages:
@@ -14,6 +16,10 @@ packages:
     resolution: {integrity: sha512-f+tvwCv1ka24dBqI2DgBhR7Oxl3DKHOp4onxLXwyBFt6iCADnr3YZIr1/2Iq5r3uqxFgaf01bfPsRQZPkEp0kQ==}
     engines: {node: '>= 10'}
     hasBin: true
+    dev: true
+
+  /@noble/ed25519/1.6.0:
+    resolution: {integrity: sha512-UKju89WV37IUALIMfKhKW3psO8AqmrE/GvH6QbPKjzolQ98zM7WmGUeY+xdIgSf5tqPFf75ZCYMgym6E9Jsw3Q==}
     dev: true
 
   /@types/node/17.0.18:
