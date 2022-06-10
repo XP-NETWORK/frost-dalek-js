@@ -1,0 +1,25 @@
+{
+  "name": "frost-dalek",
+  "version": "0.0.2",
+  "description": "low level JS Bindings for frost-dalek",
+  "main": "dist/index.js",
+  "napi": {
+    "name": "frost-dalek"
+  },
+  "scripts": {
+    "create-dist": "mkdir -p dist",
+    "napi:build": "napi build --release --platform",
+    "napi:build:debug": "napi build",
+    "build": "pnpm create-dist && pnpm napi:build && cp index.* dist && cp *.node dist",
+    "build:debug": "pnpm create-dist && pnpm napi:build:debug && cp index.* dist",
+    "build-examples": "pnpm build && tsc -p tsconfig.json",
+    "artifacts": "napi artifacts"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.4.2",
+    "@noble/ed25519": "^1.6.0",
+    "@types/node": "^17.0.10"
+  },
+  "author": "",
+  "license": "MIT"
+}
