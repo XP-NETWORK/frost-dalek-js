@@ -10,7 +10,7 @@ crate-type=["cdylib"]
 
 [dependencies]
 rand_core = { version = "0.5", default-features = false, features = ["getrandom"] }
-frost-dalek = { git = "https://github.com/XP-NETWORK/frost-dalek", rev = "98e83ce674d16a9762f3a126f92a309e688c3fc0" } 
+frost-dalek = { git = "https://github.com/XP-NETWORK/frost-dalek", rev = "74a62f726b7266168ab2229b6ca5a87bdf95dbc2" } 
 ed25519-dalek = "1"
 curve25519-dalek = "3"
 napi = "2"

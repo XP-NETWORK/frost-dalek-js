@@ -1,6 +1,6 @@
 mod wrappers;
 
-use std::alloc::{dealloc, Layout};
+use std::{alloc::{dealloc, Layout}, ops::Deref};
 
 use frost_dalek::{Participant, Parameters, keygen::{Coefficients, RoundOne}, DistributedKeyGeneration, generate_commitment_share_lists, SignatureAggregator, IndividualPublicKey, compute_sha256_hash, precomputation::SecretCommitmentShareList, IndividualSecretKey, signature::{Initial, PartialThresholdSignature}};
 use ed25519_dalek::Verifier;
@@ -160,11 +160,12 @@ fn sign_partial(
     let gk = group_key_from_buff(group_key)
         .ok_or_else(|| Error::from_reason("invalid group key"))?;
 
-    let message_hash = compute_sha256_hash(&context, &message);
+    let message_hash = compute_sha256_hash(&message);
+    let msg = [context.deref(), message_hash.as_slice()].concat();
     let mut secret_comm_share: Box<SecretCommitmentShareList> = unsafe { from_handle(secret_comm_share_handle) };
 
     sk.sign(
-        &message_hash,
+        &msg,
         &gk,
         &mut secret_comm_share,
         0,
@@ -204,12 +205,13 @@ fn validate_signature(
 
     let gk_ed = ed25519_dalek::PublicKey::from_bytes(&gk.to_ed25519()).unwrap();
 
-    let message_hash = compute_sha256_hash(&context, &message);
+    let message_hash = compute_sha256_hash(&message);
     let mut sig = [0u8; 64];
     sig.copy_from_slice(&signature);
     let sig_ed = ed25519_dalek::Signature::from(sig);
 
-    gk_ed.verify(&message_hash, &sig_ed).map_err(|_| Error::from_reason("threshold signature verification failed!"))?;
+    let msg = [context.deref(), message_hash.as_slice()].concat();
+    gk_ed.verify(&msg, &sig_ed).map_err(|_| Error::from_reason("threshold signature verification failed!"))?;
 
     Ok(())
 }
