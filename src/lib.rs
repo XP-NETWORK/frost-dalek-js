@@ -16,7 +16,7 @@ fn participate(uuid: u32, num_sig: u32, threshold: u32) -> ParticipateRes {
     let (participant, coeff) = Participant::new(&params, uuid);
     ParticipateRes {
         participant: participant.into(),
-        coefficients_handle: External::new(coeff)
+        coefficients_handle: External::new_with_size_hint(coeff, size_of::<Coefficients>())
     }
 }
 
