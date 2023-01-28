@@ -4,7 +4,12 @@
   "description": "low level JS Bindings for frost-dalek",
   "main": "dist/index.js",
   "napi": {
-    "name": "frost-dalek"
+    "name": "frost-dalek",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin"
+      ]
+    }
   },
   "scripts": {
     "create-dist": "mkdir -p dist",
